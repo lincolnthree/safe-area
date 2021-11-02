@@ -69,7 +69,6 @@ public class SafeAreaPlugin: CAPPlugin {
         let left = Int(safeFrame!.minX)
 
         self.changeSafeArea(top: top, right: right, bottom: bottom, left: left)
-        NSLog("REFRESHED");
     }
 
     @objc func getSafeAreaInsets(_ call: CAPPluginCall) {
