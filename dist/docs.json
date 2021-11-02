@@ -1,0 +1,131 @@
+{
+  "api": {
+    "name": "SafeAreaPlugin",
+    "slug": "safeareaplugin",
+    "docs": "",
+    "tags": [],
+    "methods": [
+      {
+        "name": "refresh",
+        "signature": "() => any",
+        "parameters": [],
+        "returns": "any",
+        "tags": [],
+        "docs": "Detect new inset values and fire {@link EventOnInsetsChanged}.",
+        "complexTypes": [],
+        "slug": "refresh"
+      },
+      {
+        "name": "getSafeAreaInsets",
+        "signature": "() => any",
+        "parameters": [],
+        "returns": "any",
+        "tags": [],
+        "docs": "Get the current {@link SafeAreaInsets}.",
+        "complexTypes": [
+          "SafeAreaInsetsResult"
+        ],
+        "slug": "getsafeareainsets"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: \"safeAreaInsetChanged\", listener: SafeAreaInsetsChangedCallback) => PluginListenerHandle",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "\"safeAreaInsetChanged\""
+          },
+          {
+            "name": "listener",
+            "docs": "",
+            "type": "(insets: SafeAreaInsets) => void"
+          }
+        ],
+        "returns": "PluginListenerHandle",
+        "tags": [],
+        "docs": "Add a listener to receive callbacks when {@link EventOnInsetsChanged} events occur. \nTIP: Un-register listeners via {@link PluginListenerHandle.remove} when no longer needed \nor memory leaks will occur.",
+        "complexTypes": [
+          "PluginListenerHandle",
+          "SafeAreaInsetsChangedCallback"
+        ],
+        "slug": "addlistener"
+      }
+    ],
+    "properties": []
+  },
+  "interfaces": [
+    {
+      "name": "SafeAreaInsetsResult",
+      "slug": "safeareainsetsresult",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "insets",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [
+            "SafeAreaInsets"
+          ],
+          "type": "SafeAreaInsets"
+        }
+      ]
+    },
+    {
+      "name": "SafeAreaInsets",
+      "slug": "safeareainsets",
+      "docs": "SafeArea inset values.",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "top",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "right",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "bottom",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "left",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "PluginListenerHandle",
+      "slug": "pluginlistenerhandle",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "remove",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "() => any"
+        }
+      ]
+    }
+  ],
+  "enums": []
+}
