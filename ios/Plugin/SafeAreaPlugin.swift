@@ -27,7 +27,7 @@ func getStatusBarFrame(controller: UIViewController) -> CGRect {
 public class SizeWithCoordinator: NSObject {
     public var size: CGSize;
     public var coordinator: UIViewControllerTransitionCoordinator;
-    
+
     init(size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         self.size = size;
         self.coordinator = coordinator;
@@ -42,18 +42,40 @@ let EVENT_ON_INSETS_CHANGED = "safeAreaInsetChanged"
  */
 @objc(SafeAreaPlugin)
 public class SafeAreaPlugin: CAPPlugin {
-    public static let ViewWillTransitionToSizeWithCoordinatorNotification = NSNotification.Name(rawValue: "SafeAreaPlugin.ViewWillTransitionToSizeWithCoordinator")
+    public static let ViewWillTransitionToEvent = NSNotification.Name(rawValue: "SafeAreaPlugin.ViewWillTransitionToEvent")
     private var safeArea = makeSafeArea(top: 0, bottom: 0, right: 0, left: 0)
 
-    private let implementation = SafeArea();
+    private let implementation = SafeArea()
 
-    @objc func echo(_ call: CAPPluginCall) {
-        let value = call.getString("value") ?? ""
-        call.resolve([
-            "value": implementation.echo(value)
-        ])
+    @objc func refresh(_ call: CAPPluginCall) {
+        self.refreshInternal()
+        call.resolve()
     }
-    
+
+    private func refreshInternal() {
+        var window: UIWindow? = nil;
+        if #available(iOS 13.0, *) {
+            window = UIApplication.shared.windows.first
+        }
+        else if #available(iOS 11.0, *) {
+            window = UIApplication.shared.keyWindow
+        }
+
+        let safeFrame = window?.safeAreaLayoutGuide.layoutFrame;
+
+        let top = Int(safeFrame!.minY)
+        let right = Int((window?.frame.maxX ?? safeFrame!.maxX) - safeFrame!.maxX)
+        let bottom = Int((window?.frame.maxY ?? safeFrame!.maxY) - safeFrame!.maxY)
+        let left = Int(safeFrame!.minX)
+
+        self.changeSafeArea(top: top, right: right, bottom: bottom, left: left)
+        NSLog("REFRESHED");
+    }
+
+    @objc func getSafeAreaInsets(_ call: CAPPluginCall) {
+        call.resolve(self.safeArea)
+    }
+
     override public func load() {
         NotificationCenter.default.addObserver(
             self,
@@ -67,68 +89,43 @@ public class SafeAreaPlugin: CAPPlugin {
             name: UIApplication.willResignActiveNotification,
             object: nil
         )
-        
+
         if #available(iOS 13.0, *) {
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(self.onViewWillTransitionTo),
-                name: SafeAreaPlugin.ViewWillTransitionToSizeWithCoordinatorNotification,
-                object: nil
-            )
-        } else {
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(self.onWillChangeStatusBarFrameNotification),
-                name: UIApplication.willChangeStatusBarFrameNotification,
+                name: SafeAreaPlugin.ViewWillTransitionToEvent,
                 object: nil
             )
         }
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
-    @objc func refresh(_ call: CAPPluginCall) {
-        let frame = getStatusBarFrame(controller: self.bridge!.viewController!)
-        self.changeSafeArea(top: Int(frame.size.height.rounded()));
-        call.resolve()
+
+    @objc func onDidBecomeActive() {
+        self.refreshInternal()
     }
 
-    @objc func getSafeAreaInsets(_ call: CAPPluginCall) {
-        call.resolve(self.safeArea)
-    }
-    
-    @objc func onDidBecomeActive() {
-        let frame = getStatusBarFrame(controller: self.bridge!.viewController!)
-        self.changeSafeArea(top: Int(frame.size.height.rounded()))
-    }
-    
     @objc func onWillResignActive() {}
-    
-    @objc func onWillChangeStatusBarFrameNotification(newFrame: CGRect) {
-        self.changeSafeArea(top: Int(newFrame.height.rounded()))
-    }
-    
+
     @objc func onViewWillTransitionTo(event: NSNotification) {
-        let coordinator = event.object as! SizeWithCoordinator;
-        self.changeSafeArea(top: Int(coordinator.size.height.rounded()))
+        self.refreshInternal()
     }
-    
-    func changeSafeArea(top: Int) {
-        self.safeArea = makeSafeArea(top: top, bottom: 0, right: 0, left: 0)
+
+    func changeSafeArea(top: Int, right: Int, bottom: Int, left: Int) {
+        self.safeArea = makeSafeArea(top: top, bottom: bottom, right: right, left: left)
         self.notifyListeners(EVENT_ON_INSETS_CHANGED, data: self.safeArea)
     }
 }
 
 extension CAPBridgeViewController {
-    public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        if #available(iOS 13.0, *) {
-            NotificationCenter.default.post(
-                name: SafeAreaPlugin.ViewWillTransitionToSizeWithCoordinatorNotification,
-                object: SizeWithCoordinator(size: size, with: coordinator)
-            )
-        }
+    public override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews();
+        NotificationCenter.default.post(
+            name: SafeAreaPlugin.ViewWillTransitionToEvent,
+            object: nil
+        )
     }
 }
