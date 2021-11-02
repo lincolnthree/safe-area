@@ -1,37 +1,13 @@
 import Foundation
 import Capacitor
 
-func makeSafeArea(top: Int, bottom: Int, right: Int, left: Int) -> [String :[String: Int]] {
+func makeSafeArea(top: Int, bottom: Int, right: Int, left: Int) -> [String: Int] {
     return [
-        "insets": [
-            "top": top,
-            "right": right,
-            "bottom": bottom,
-            "left": left
-        ]
+        "top": top,
+        "right": right,
+        "bottom": bottom,
+        "left": left
     ];
-}
-
-func getStatusBarFrame(controller: UIViewController) -> CGRect {
-    if #available(iOS 13.0, *) {
-        let keyWindow = UIApplication.shared.windows
-            .filter { window in window.rootViewController == controller }
-            .first
-        return keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero
-    } else {
-        return UIApplication.shared.statusBarFrame
-    }
-}
-
-@objc
-public class SizeWithCoordinator: NSObject {
-    public var size: CGSize;
-    public var coordinator: UIViewControllerTransitionCoordinator;
-
-    init(size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        self.size = size;
-        self.coordinator = coordinator;
-    }
 }
 
 let EVENT_ON_INSETS_CHANGED = "safeAreaInsetChanged"
@@ -43,9 +19,7 @@ let EVENT_ON_INSETS_CHANGED = "safeAreaInsetChanged"
 @objc(SafeAreaPlugin)
 public class SafeAreaPlugin: CAPPlugin {
     public static let ViewWillTransitionToEvent = NSNotification.Name(rawValue: "SafeAreaPlugin.ViewWillTransitionToEvent")
-    private var safeArea = makeSafeArea(top: 0, bottom: 0, right: 0, left: 0)
-
-    private let implementation = SafeArea()
+    private var insets = makeSafeArea(top: 0, bottom: 0, right: 0, left: 0)
 
     @objc func refresh(_ call: CAPPluginCall) {
         self.refreshInternal()
@@ -72,7 +46,7 @@ public class SafeAreaPlugin: CAPPlugin {
     }
 
     @objc func getSafeAreaInsets(_ call: CAPPluginCall) {
-        call.resolve(self.safeArea)
+        call.resolve([ "insets": self.insets ])
     }
 
     override public func load() {
@@ -114,8 +88,8 @@ public class SafeAreaPlugin: CAPPlugin {
     }
 
     func changeSafeArea(top: Int, right: Int, bottom: Int, left: Int) {
-        self.safeArea = makeSafeArea(top: top, bottom: bottom, right: right, left: left)
-        self.notifyListeners(EVENT_ON_INSETS_CHANGED, data: self.safeArea)
+        self.insets = makeSafeArea(top: top, bottom: bottom, right: right, left: left)
+        self.notifyListeners(EVENT_ON_INSETS_CHANGED, data: self.insets)
     }
 }
 
